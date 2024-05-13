@@ -17,8 +17,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
-            "username": self.username,
-            "favorites": self.favorites            
+            "username": self.username,          
         }
     
 class Planets(db.Model):
@@ -28,7 +27,6 @@ class Planets(db.Model):
     climate = db.Column(db.String(250))
     favorites = db.relationship('Favorite', backref='planet')
     
-
     def __repr__(self):
         return '<Planets %r>' % self.name
 
@@ -68,6 +66,7 @@ class Favorite(db.Model):
 
     def __repr__(self):
             return '<Favorite %r>' % self.id
+    
     def serialize(self):
         return {
             "id_favorito": self.id,

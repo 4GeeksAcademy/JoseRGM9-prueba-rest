@@ -39,7 +39,8 @@ def sitemap():
 @app.route('/user', methods=['GET'])
 def get_users():
     users= User.query.all()
-    all_users = list(map(lambda item: item.serialize(), users))
+    all_users= [element.serialize() for element in users]
+    print(users)
     return jsonify(all_users), 200
 
 @app.route('/user/<int:user_id>', methods=['GET'])
@@ -47,6 +48,7 @@ def get_user_by_id(user_id):
     Pick_user = User.query.filter_by(id=user_id).first()
     if Pick_user is None:
          raise APIException('Usuario no existe', status_code=404)
+    print(Pick_user)
     return jsonify(Pick_user.serialize()), 200
 
 @app.route('/user', methods=['POST'])
@@ -55,13 +57,14 @@ def create_user():
     new_user = User(
         username=body["username"], 
         email=body["email"], 
-        password=body["password"])
+        password=body["password"],
+        is_active=body["is_active"])
     db.session.add(new_user)
     db.session.commit()
     response_body = {
         "msg": "cree un nuevo usuario"
     }
-    return jsonify(body), 200
+    return jsonify(response_body), 200
 
 @app.route('/user/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
@@ -110,9 +113,7 @@ def create_people():
     request_body_user = request.get_json()
     new_people = People(
         height=request_body_user["height"], 
-        mass=request_body_user["mass"], 
         hair_color=request_body_user["hair_color"], 
-        birth_year=request_body_user["birth_year"], 
         gender=request_body_user["gender"], 
         name=request_body_user["name"])
     db.session.add(new_people)
@@ -149,7 +150,10 @@ def planet(planet_id):
 @app.route('/planets', methods=['POST'])
 def create_planet():
     request_body_user = request.get_json()
-    new_planet = Planets(diameter=request_body_user["diameter"], rotation_period=request_body_user["rotation_period"], orbital_period=request_body_user["orbital_period"], climate=request_body_user["climate"], terrain=request_body_user["terrain"], surface_water=request_body_user["surface_water"], population=request_body_user["population"], name=request_body_user["name"])
+    new_planet = Planets(
+        diameter=request_body_user["diameter"], 
+        climate=request_body_user["climate"], 
+        name=request_body_user["name"])
     db.session.add(new_planet)
     db.session.commit()
     return jsonify(request_body_user), 200
@@ -185,16 +189,16 @@ def add_people_favorite(user_id, favoritePersonId):
     people = People.query.get(favoritePersonId)
     if not people:
         raise APIException('Character not found', status_code=404)
-    if Favorite.query.filter_by(user_id=user_id, favoritePersonId=favoritePersonId).first():
+    if Favorite.query.filter_by(user_id=user_id, favorite_Person=favoritePersonId).first():
         raise APIException('The character is already on the favorites list', status_code=400)
-    favorite = Favorite(user_id=user_id, favoritePersonId=favoritePersonId)
+    favorite = Favorite(user_id=user_id, favorite_Person=favoritePersonId)
     db.session.add(favorite)
     db.session.commit()
     return jsonify("Character added to favorites successfully"), 200
 
 @app.route('/user/<int:user_id>/favorites/people/<int:favoritePersonId>', methods=['DELETE'])
 def delete_people_favorite(user_id, favoritePersonId):
-    favorite = Favorite.query.filter_by(user_id=user_id, favoritePersonId=favoritePersonId).first()
+    favorite = Favorite.query.filter_by(user_id=user_id, favorite_Person=favoritePersonId).first()
     if not favorite:
         raise APIException('Favorite not found', status_code=404)
     db.session.delete(favorite)
@@ -209,16 +213,16 @@ def add_planet_favorite(user_id, favoritePlanetId):
     planet = Planets.query.get(favoritePlanetId)
     if not planet:
         raise APIException('Planet not found', status_code=404)
-    if Favorite.query.filter_by(user_id=user_id, favoritePlanetId=favoritePlanetId).first():
+    if Favorite.query.filter_by(user_id=user_id, favorite_Planet=favoritePlanetId).first():
         raise APIException('The planet is already on the favorites list', status_code=400)
-    favorite = Favorite(user_id=user_id, favoritePlanetId=favoritePlanetId)
+    favorite = Favorite(user_id=user_id, favorite_Planet=favoritePlanetId)
     db.session.add(favorite)
     db.session.commit()
     return jsonify("Planet added to favorites successfully"), 200
 
 @app.route('/user/<int:user_id>/favorites/planets/<int:favoritePlanetId>', methods=['DELETE'])
 def delete_planet_favorite(user_id, favoritePlanetId):
-    favorite = Favorite.query.filter_by(user_id=user_id, favoritePlanetId=favoritePlanetId).first()
+    favorite = Favorite.query.filter_by(user_id=user_id, favorite_Planet=favoritePlanetId).first()
     if not favorite:
         raise APIException('Favorite not found', status_code=404)
     db.session.delete(favorite)
